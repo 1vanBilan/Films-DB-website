@@ -17,7 +17,7 @@
 }
 
 body {
-  background-color: #000000;
+  background-color: #0f0e0e;
   background-size: cover;
   background-repeat: no-repeat;
   background-attachment: fixed;
@@ -30,4 +30,8 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+}
+
+.slick-slide > div {
+  margin: 0 10px;
 }
