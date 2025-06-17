@@ -6,14 +6,17 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import dayjs from "dayjs";
-import { CalendarIcon, DollarIcon, LoadingIcon, StarIcon } from "@/components";
-import { ChevronIcon } from "@/components/ChevronIcon/ChevronIcon";
+import {
+  CalendarIcon,
+  DollarIcon,
+  LoadingIcon,
+  StarIcon,
+  ChevronIcon,
+} from "@/components/icons";
 
 export default function Comics() {
   const searchParams = useSearchParams();
   const filmId = searchParams.get("id");
-  const apiKey =
-    "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIwYjdmNmM0MWQ2YTUyMGEzM2E4ZjI4YWRiODc1M2EyZSIsIm5iZiI6MTcyMTg0Mjk2OC44OTQsInN1YiI6IjY2YTEzZDE4ZjdhMTE0YTA4M2UwZDkwOCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.MT0N_4i_WUOPFnVXp6y-cdMovLgJln4P8-4763te7TI";
 
   const {
     data: similarFilms,
@@ -22,16 +25,7 @@ export default function Comics() {
   } = useQuery({
     queryKey: ["getSimilarFilms", filmId],
     queryFn: async () => {
-      return (
-        await axios.get(
-          `https://api.themoviedb.org/3/movie/${filmId}/recommendations`,
-          {
-            headers: {
-              Authorization: `Bearer ${apiKey}`,
-            },
-          }
-        )
-      ).data.results;
+      return (await axios.get(`/movie/${filmId}/recommendations`)).data.results;
     },
     refetchOnWindowFocus: false,
   });
@@ -43,13 +37,7 @@ export default function Comics() {
   } = useQuery({
     queryKey: ["getFilm", filmId],
     queryFn: async () => {
-      return (
-        await axios.get(`https://api.themoviedb.org/3/movie/${filmId}`, {
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-          },
-        })
-      ).data;
+      return (await axios.get(`/movie/${filmId}`, {})).data;
     },
     refetchOnWindowFocus: false,
   });

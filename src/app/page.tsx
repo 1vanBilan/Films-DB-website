@@ -4,13 +4,11 @@ import axios from "axios";
 import NextImage from "next/image";
 import NextLink from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { StarIcon, TrendingFilms, usePaginationComponent } from "@/components";
+import { FilmList, TrendingFilms, usePaginationComponent } from "@/components";
+import { StarIcon } from "@/components/icons";
 
 export default function Home() {
   const [totalResults, setTotalResults] = useState(0);
-
-  const apiKey =
-    "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIwYjdmNmM0MWQ2YTUyMGEzM2E4ZjI4YWRiODc1M2EyZSIsIm5iZiI6MTcyMTg0Mjk2OC44OTQsInN1YiI6IjY2YTEzZDE4ZjdhMTE0YTA4M2UwZDkwOCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.MT0N_4i_WUOPFnVXp6y-cdMovLgJln4P8-4763te7TI";
 
   const { PaginationComponent, totalPages, currentPage } =
     usePaginationComponent({
@@ -26,10 +24,7 @@ export default function Home() {
     queryKey: ["getMovies", currentPage],
     queryFn: async () => {
       return (
-        await axios.get("https://api.themoviedb.org/3/trending/movie/day", {
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-          },
+        await axios.get("/trending/movie/day", {
           params: {
             page: currentPage,
           },
@@ -46,13 +41,7 @@ export default function Home() {
   } = useQuery({
     queryKey: ["getPopularFilms"],
     queryFn: async () => {
-      return (
-        await axios.get("https://api.themoviedb.org/3/movie/popular", {
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-          },
-        })
-      ).data;
+      return (await axios.get("/movie/popular")).data;
     },
     refetchOnWindowFocus: false,
   });
@@ -64,22 +53,28 @@ export default function Home() {
   } = useQuery({
     queryKey: ["getTopRatedFilms"],
     queryFn: async () => {
-      return (
-        await axios.get("https://api.themoviedb.org/3/movie/top_rated", {
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-          },
-        })
-      ).data;
+      return (await axios.get("/movie/top_rated")).data;
     },
     refetchOnWindowFocus: false,
   });
 
-  useEffect(() => {
-    if (isSuccess && films) {
-      setTotalResults(films.total_results);
-    }
-  }, [films]);
+  const {
+    data: newFilms,
+    isLoading: isLoadingNewFilms,
+    isSuccess: isSuccessNewFilms,
+  } = useQuery({
+    queryKey: ["getNewFilms"],
+    queryFn: async () => {
+      return (await axios.get("/movie/now_playing")).data;
+    },
+    refetchOnWindowFocus: false,
+  });
+
+  // useEffect(() => {
+  //   if (isSuccess && films) {
+  //     setTotalResults(films.total_results);
+  //   }
+  // }, [films]);
 
   return (
     <>
@@ -94,12 +89,10 @@ export default function Home() {
       </div>
 
       <div className="w-full bg-amber-400">
-        <div className="w-[1024px] my-10 mx-auto px-8 py-16 back">
+        <div className="w-[1024px] my-10 mx-auto px-8 py-16">
           {!isLoadingTopRatedFilms && !!topRatedFilms.results.length && (
             <>
-              <h3 className="text-4xl text-black font-bold mb-6">
-                Top Rated Films
-              </h3>
+              <h3 className="text-4xl text-black font-bold mb-6">Top Rated</h3>
               <div className="flex justify-between gap-4">
                 {topRatedFilms.results.slice(0, 4).map((film: any) => (
                   <div key={film.id} className="w-[200px] flex justify-center">
@@ -135,33 +128,39 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-8 m-4 w-[1024px] my-10 mx-auto pb-4 p-10">
-        {films?.results.map((film: any, index: number) => (
-          <div key={index} className="flex justify-center">
-            <NextLink href={`/films?id=${film.id}`}>
-              <div className="bg-gray-200 rounded-md p-5 h-full">
-                <div className="flex justify-start h-full flex-col ">
-                  <div
-                    style={{
-                      backgroundImage: `url(https://image.tmdb.org/t/p/w500${film.poster_path})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                      width: "180px",
-                      height: "270px",
-                    }}
-                  />
-                  <span className="font-semibold text-center mt-3 max-w-44">
-                    {film.title.length > 35
-                      ? `${film.title.slice(0, 35)}...`
-                      : film.title}
-                  </span>
+      {!isLoadingNewFilms && !!newFilms.results.length && (
+        <div className="w-[1024px] my-10 mx-auto">
+          <FilmList items={newFilms.results} title="New Release - Films" />
+        </div>
+      )}
+
+      {/* <div className="grid grid-cols-4 gap-8 m-4 w-[1024px] my-10 mx-auto pb-4 p-10">
+          {films?.results.map((film: any, index: number) => (
+            <div key={index} className="flex justify-center">
+              <NextLink href={`/films?id=${film.id}`}>
+                <div className="bg-gray-200 rounded-md p-5 h-full">
+                  <div className="flex justify-start h-full flex-col ">
+                    <div
+                      style={{
+                        backgroundImage: `url(https://image.tmdb.org/t/p/w500${film.poster_path})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        width: "180px",
+                        height: "270px",
+                      }}
+                    />
+                    <span className="font-semibold text-center mt-3 max-w-44">
+                      {film.title.length > 35
+                        ? `${film.title.slice(0, 35)}...`
+                        : film.title}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </NextLink>
-          </div>
-        ))}
-      </div>
-      <PaginationComponent />
+              </NextLink>
+            </div>
+          ))}
+        </div> */}
+      {/* <PaginationComponent /> */}
     </>
   );
 }
